@@ -73,7 +73,7 @@ __global__ void mm_transpose(int *a, int *b, int *c, int n) {
 
     int temp = 0;
     for (int tile = 0; tile < n; tile += blockDim.x) {
-        tile_a[threadIdx.y * blockDim.x + threadIdx.x] = a[tile * n + threadIdx.x *n + row];
+        tile_a[threadIdx.y * blockDim.x + threadIdx.x] = a[tile * n + threadIdx.x *n + row]; // not coalesced access
         tile_b[threadIdx.y * blockDim.x + threadIdx.x] = b[tile *n + threadIdx.y * n  + col];
         __syncthreads();
 
