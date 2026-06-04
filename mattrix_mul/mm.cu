@@ -10,16 +10,11 @@ using std::cout;
 using std::generate;
 using std::vector;
 
-// Pull out matrix and shared memory tile size 
 void verify_result(vector<int> &a, vector<int> &b, vector<int> &c, int n) {
-  // For every row...
   for (int i = 0; i < n; i++) {
-    // For every column...
     for (int j = 0; j < n ; j++) {
-      // For every element in the row-column pair
       int tmp = 0;
       for (int k = 0; k < n; k++) {
-        // Accumulate the partial results
         tmp += a[i * n + k] * b[k * n + j];
       }
 
