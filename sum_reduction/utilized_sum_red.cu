@@ -4,7 +4,14 @@
 #include <time.h>
 
 
-
+__device__ void warp_reduce(volatile int *sdata, int tid) {
+    sdata[tid] += sdata[tid + 32];
+    sdata[tid] += sdata[tid + 16];
+    sdata[tid] += sdata[tid + 8];
+    sdata[tid] += sdata[tid + 4];
+    sdata[tid] += sdata[tid + 2];
+    sdata[tid] += sdata[tid + 1];
+}
 
 __global__ void sum_reduction(int *input, int *output) {
     __shared__ int sdata[1024];
@@ -12,7 +19,7 @@ __global__ void sum_reduction(int *input, int *output) {
     int idx = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
     sdata[threadIdx.x] = input[idx] + input[idx + blockDim.x];
     __syncthreads();
-    for (int s = blockDim.x / 2; s > 0; s /= 2) {
+    for (int s = blockDim.x / 2; s >= 32; s /= 2) {
         if (threadIdx.x < s) {
             sdata[threadIdx.x] += sdata[threadIdx.x + s];
         }
@@ -20,6 +27,9 @@ __global__ void sum_reduction(int *input, int *output) {
         // if (idx < blockDim.x) {
         //     sdata[idx] += sdata[idx + s];
         __syncthreads(); 
+    }
+    if (threadIdx.x < 32) {
+        warp_reduce(sdata, threadIdx.x);
     }
     if (threadIdx.x == 0) {
         output[blockIdx.x] = sdata[0];
